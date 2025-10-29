@@ -1,136 +1,20 @@
-# import requests
-# from selectolax.parser import HTMLParser
-# import re
-# import os
-# import sys
-# sys.stdout.reconfigure(encoding='utf-8')
-
-
-# def get_last_valid_cpp_md_link():
-#     url = "https://github.com/Hunterdii/GeeksforGeeks-POTD"
-#     headers = {"User-Agent": "Mozilla/5.0"}
-#     response = requests.get(url, headers=headers)
-#     html = HTMLParser(response.text)
-
-#     # Search all tables in the document
-#     tables = html.css("table")
-#     for table in tables:
-#         rows = table.css("tr")
-#         data_rows = [row for row in rows if len(row.css("td")) >= 4]
-
-#         for row in reversed(data_rows):
-#             tds = row.css("td")
-#             cpp_cell = tds[3]
-#             link_tag = cpp_cell.css_first("a")
-#             if link_tag and "href" in link_tag.attributes:
-#                 problem_name = tds[1].text(strip=True)
-#                 print(link_tag.attributes["href"])
-#                 return link_tag.attributes["href"], problem_name
-
-#     raise Exception("No valid C++ link found in any table")
-
-# def convert_blob_to_raw(blob_url):
-#     parts = blob_url.split("/blob/")
-#     if len(parts) != 2:
-#         raise Exception("Invalid blob URL format")
-#     return f"https://raw.githubusercontent.com/{parts[0][1:]}/{parts[1]}"
-
-# def extract_cpp_code_from_md(raw_md_url):
-#     response = requests.get(raw_md_url)
-#     if response.status_code != 200:
-#         raise Exception("Failed to fetch markdown file")
-#     text = response.text
-
-#     match = re.search(r"```cpp(.*?)```", text, re.DOTALL)
-#     if match:
-#         return match.group(1).strip()
-#     else:
-#         raise Exception("No C++ code block found")
-
-# def save_cpp_to_file(code, problem_name):
-#     safe_name = re.sub(r'[^\w\s-]', '', problem_name).replace(' ', '_')
-#     filename = f"{safe_name}.cpp"
-#     with open(filename, "w", encoding="utf-8") as f:
-#         f.write(code)
-#     print(f"Saved to {filename}")
-
-# def run_pipeline():
-#     import sys
-#     sys.stdout.reconfigure(encoding='utf-8')  # Add this line
-
-#     print("Fetching latest C++ POTD from GitHub...")
-#     blob_md_url, problem_name = get_last_valid_cpp_md_link()
-#     raw_md_url = convert_blob_to_raw(blob_md_url)
-#     cpp_code = extract_cpp_code_from_md(raw_md_url)
-#     print(f"\n Problem: {problem_name.encode('ascii', 'replace').decode()}\n")
-
-#     print(cpp_code)
-#     save_cpp_to_file(cpp_code, problem_name)
-
-
-# # Run it!
-# if __name__ == "__main__":
-#     run_pipeline()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 import re
 import os
 import sys
-from playwright.sync_api import sync_playwright
 import requests
 from selectolax.parser import HTMLParser
+from playwright.sync_api import sync_playwright
 from dotenv import load_dotenv
-import os
 
 load_dotenv()
+sys.stdout.reconfigure(encoding='utf-8')
 
 username = os.getenv("GFG_USERNAME")
 password = os.getenv("GFG_PASSWORD")
 
 print(f" Username loaded: {username}")
 print(f" Password loaded: {'*' * len(password) if password else 'None'}")
-
-sys.stdout.reconfigure(encoding='utf-8')
-
 
 def get_last_valid_cpp_md_link():
     url = "https://github.com/Hunterdii/GeeksforGeeks-POTD"
@@ -154,28 +38,6 @@ def get_last_valid_cpp_md_link():
     raise Exception("No valid C++ link found in any table")
 
 
-# def extract_cpp_with_playwright(blob_url):
-#     full_url = f"https://github.com{blob_url}"
-#     with sync_playwright() as p:
-#         browser = p.chromium.launch(headless=True)
-#         page = browser.new_page()
-#         page.goto(full_url)
-#         page.wait_for_selector("div.highlight-source-c\\+\\+", timeout=10000)
-
-#         blocks = page.query_selector_all("div.highlight-source-c\\+\\+")
-#         if len(blocks) < 3:
-#             browser.close()
-#             raise Exception("Expected at least two C++ code blocks, found fewer.")
-
-#         pre = blocks[2].query_selector("pre")
-#         if not pre:
-#             browser.close()
-#             raise Exception("Second C++ code block missing <pre> tag.")
-
-#         cpp_code = pre.inner_text()
-#         browser.close()
-#         return cpp_code
-
 
 
 
@@ -188,9 +50,7 @@ def extract_cpp_with_playwright(blob_url):
         page.wait_for_selector("div.highlight-source-c\\+\\+", timeout=10000)
 
         blocks = page.query_selector_all("div.highlight-source-c\\+\\+")
-       
-
-        for i, block in enumerate(blocks):
+        for block in blocks:
             pre = block.query_selector("pre")
             if not pre:
                 continue
@@ -200,12 +60,11 @@ def extract_cpp_with_playwright(blob_url):
             if has_pl_k:
                 cpp_code = pre.inner_text()
                 browser.close()
-               
                 return cpp_code
 
         browser.close()
         raise Exception("No valid C++ code block found (none contained pl-k).")
-
+    
 
 
 
@@ -217,47 +76,95 @@ def save_cpp_to_file(code, problem_name):
     print(f" Saved to {filename}")
 
 
+
+
+
+def login_to_gfg(page, username, password):
+    page.goto("https://auth.geeksforgeeks.org/")
+
+    page.wait_for_selector("input#luser", timeout=10000)
+    page.fill("input#luser", username)
+
+    page.wait_for_selector("input#password", timeout=10000)
+    page.fill("input#password", password)
+
+    page.click("button[type='submit']")
+    page.wait_for_timeout(3000)
+  
+
+
+
+
+def get_potd_problem_link(page):
+    page.goto("https://practice.geeksforgeeks.org/problem-of-the-day")
+    page.wait_for_selector("#potd_solve_prob", timeout=10000)
+    problem_link = page.locator("#potd_solve_prob").get_attribute("href")
+    if not problem_link:
+        raise Exception(" Could not extract POTD problem link")
+    print(" Found POTD problem link:", problem_link)
+    return problem_link
+
+
+
+
+def submit_solution(page, cpp_code):
+    # Wait for Ace Editor to load
+    page.wait_for_selector(".ace_text-input", timeout=10000)
+
+    # Inject code directly into Ace Editor using its API
+    page.evaluate(f"""
+        const editor = ace.edit(document.querySelector(".ace_editor"));
+        editor.setValue({repr(cpp_code)}, -1);  // -1 moves cursor to start
+    """)
+
+    # Optional: select C++ language
+    try:
+        page.select_option("select#language", "C++")
+        print(" Language set to C++")
+    except:
+        print(" Language dropdown not found or already set")
+
+    # Wait for hydration
+    page.wait_for_timeout(2000)
+
+    # Submit the solution
+    submit_btn = page.locator("button.problems_submit_button__6QoNQ")
+    submit_btn.scroll_into_view_if_needed()
+    submit_btn.click()
+
+    page.wait_for_timeout(3000)
+  
+
+    print(" Submitted solution (via Ace API)")
+
+
+
+
 def run_pipeline():
-    print(" Fetching latest C++ POTD from GitHub...")
+    print("🌿 Fetching latest C++ POTD from GitHub...")
     blob_md_url, problem_name = get_last_valid_cpp_md_link()
     clean_blob_url = blob_md_url.split('#')[0]
-    
     cpp_code = extract_cpp_with_playwright(clean_blob_url)
+
     print(f"\n Problem: {problem_name.encode('ascii', 'replace').decode()}\n")
     print(cpp_code)
     save_cpp_to_file(cpp_code, problem_name)
 
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False)
+        context = browser.new_context()
+        page = context.new_page()
+
+        login_to_gfg(page, username, password)
+
+        problem_link = get_potd_problem_link(page)
+        page.goto(problem_link)
+        page.wait_for_timeout(3000)
+        
+
+        submit_solution(page, cpp_code)
+
+        browser.close()
 
 if __name__ == "__main__":
     run_pipeline()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
