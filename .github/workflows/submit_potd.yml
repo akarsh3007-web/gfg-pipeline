@@ -2,8 +2,12 @@ name: Submit GFG POTD
 
 on:
   schedule:
-    - cron: '20 14 * * *'  # Runs daily at 11:50 PM IST
+    - cron: '20 14 * * *'
   workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: gfg-pipeline
 
 jobs:
   submit:
@@ -35,4 +39,4 @@ jobs:
         run: python scrape.py
 
       - name: Confirm success
-        run: echo "✅ POTD submission workflow completed"
+        run: echo " POTD submission workflow completed"
