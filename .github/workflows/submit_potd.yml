@@ -28,8 +28,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install playwright requests python-dotenv beautifulsoup4 lxml selectolax
 
+      - name: Debug: Check if requests is importable
+        run: python -c "import requests; print('✅ requests is installed')"
+
+      - name: Debug: List installed packages
+        run: pip list
+
+      - name: Install Playwright browsers
+        run: playwright install
+
       - name: Run submission script
         run: python scrape.py
 
       - name: Confirm success
-        run: echo " POTD submission workflow completed successfully!"
+        run: echo "✅ POTD submission workflow completed successfully!"
