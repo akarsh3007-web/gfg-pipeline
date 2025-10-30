@@ -2,12 +2,8 @@ name: Submit GFG POTD
 
 on:
   schedule:
-    - cron: '20 14 * * *'
-  workflow_dispatch:
-
-defaults:
-  run:
-    working-directory: gfg-pipeline
+    - cron: '20 14 * * *'   # Runs every day at 14:20 UTC
+  workflow_dispatch:         # Allows manual trigger
 
 jobs:
   submit:
@@ -19,7 +15,7 @@ jobs:
       GFG_PASSWORD: ${{ secrets.GFG_PASSWORD }}
 
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Set up Python
@@ -30,13 +26,11 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Install Playwright browsers
-        run: playwright install
+          pip install -r gfg-pipeline/requirements.txt
+          playwright install
 
       - name: Run submission script
-        run: python scrape.py
+        run: python gfg-pipeline/scrape.py
 
       - name: Confirm success
-        run: echo " POTD submission workflow completed"
+        run: echo " POTD submission workflow completed successfully!"
