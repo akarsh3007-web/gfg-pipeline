@@ -5,10 +5,6 @@ on:
     - cron: '20 14 * * *'
   workflow_dispatch:
 
-defaults:
-  run:
-    working-directory: gfg-pipeline   # 👈 this fixes the double path issue
-
 jobs:
   submit:
     runs-on: ubuntu-latest
@@ -37,4 +33,4 @@ jobs:
         run: python scrape.py
 
       - name: Confirm success
-        run: echo "✅ POTD submission workflow completed successfully!"
+        run: echo " POTD submission workflow completed successfully!"
