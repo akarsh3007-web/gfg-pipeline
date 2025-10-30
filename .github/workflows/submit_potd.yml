@@ -2,8 +2,12 @@ name: Submit GFG POTD
 
 on:
   schedule:
-    - cron: '20 14 * * *'   # Runs every day at 14:20 UTC
-  workflow_dispatch:         # Manual trigger
+    - cron: '20 14 * * *'
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: gfg-pipeline   # 👈 this fixes the double path issue
 
 jobs:
   submit:
@@ -33,4 +37,4 @@ jobs:
         run: python scrape.py
 
       - name: Confirm success
-        run: echo " POTD submission workflow completed successfully!"
+        run: echo "✅ POTD submission workflow completed successfully!"
