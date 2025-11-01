@@ -3,7 +3,7 @@ name: Submit GFG POTD
 
 on:
   schedule:
-    - cron: '20 18 * * *'
+    - cron: '0 18 * * *'
   workflow_dispatch: {}
 
 jobs:
